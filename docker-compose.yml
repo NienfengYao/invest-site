@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  invest-site:
+    build: .
+    container_name: invest-site
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/site/app
+      - ./data:/site/data
+    restart: unless-stopped

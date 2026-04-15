@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; line-height: 1.4; }
+        .container { max-width: 1400px; }
+        .box { border: 1px solid #ccc; padding: 16px; margin-bottom: 24px; border-radius: 8px; }
+        .message { margin-top: 12px; color: #0b6b0b; }
+        .message.error { color: #b00020; }
+        table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 14px; }
+        th { background: #f5f5f5; }
+        .actions a { margin-right: 12px; }
+        input[type="file"] { margin-top: 8px; }
+        button { padding: 8px 14px; cursor: pointer; margin-top: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>{{ account.name }}</h1>
+    <div class="actions">
+        <a href="/">回首頁</a>
+        <a href="/accounts/{{ account.id }}?sort_by=date">依日期排序</a>
+        <a href="/accounts/{{ account.id }}?sort_by=stock">依股名排序</a>
+    </div>
+
+    {% if message %}
+    <div class="box">
+        <div class="message">{{ message }}</div>
+    </div>
+    {% endif %}
+
+    <div class="box">
+        <h2>更新交易記錄</h2>
+        <form action="/accounts/{{ account.id }}/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".csv" required>
+            <br>
+            <button type="submit">上傳 CSV 並更新資料庫</button>
+        </form>
+    </div>
+
+    <div class="box">
+        <h2>帳戶摘要</h2>
+        <table>
+            <tr>
+                <th>總買入成本</th>
+                <td>{{ summary.total_buy_cost }}</td>
+                <th>總賣出金額</th>
+                <td>{{ summary.total_sell_amount }}</td>
+            </tr>
+            <tr>
+                <th>交易起始日</th>
+                <td>{{ summary.first_trade_date }}</td>
+                <th>交易最後日</th>
+                <td>{{ summary.last_trade_date }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>目前股票</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>股名</th>
+                <th>股數</th>
+                <th>均價</th>
+                <th>最低價</th>
+                <th>最高價</th>
+                <th>買入成本</th>
+                <th>賣出金額</th>
+                <th>投資起始</th>
+                <th>投資最後</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if positions %}
+                {% for p in positions %}
+                <tr>
+                    <td>{{ p.stock_name }}</td>
+                    <td>{{ p.current_qty }}</td>
+                    <td>{{ p.avg_price }}</td>
+                    <td>{{ p.min_price }}</td>
+                    <td>{{ p.max_price }}</td>
+                    <td>{{ p.buy_cost }}</td>
+                    <td>{{ p.sell_amount }}</td>
+                    <td>{{ p.start_date }}</td>
+                    <td>{{ p.end_date }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="9">目前沒有資料</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>交易歷史記錄</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>股名</th>
+                <th>買賣</th>
+                <th>股數</th>
+                <th>成交價</th>
+                <th>成本</th>
+                <th>淨收付金額</th>
+                <th>手續費</th>
+                <th>交易稅</th>
+                <th>委託書號</th>
+                <th>來源檔案</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if transactions %}
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.trade_date }}</td>
+                    <td>{{ tx.stock_name }}</td>
+                    <td>{{ tx.side }}</td>
+                    <td>{{ tx.quantity }}</td>
+                    <td>{{ tx.price }}</td>
+                    <td>{{ tx.cost }}</td>
+                    <td>{{ tx.net_amount }}</td>
+                    <td>{{ tx.fee }}</td>
+                    <td>{{ tx.tax }}</td>
+                    <td>{{ tx.order_id }}</td>
+                    <td>{{ tx.source_file }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="11">目前沒有交易資料</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
