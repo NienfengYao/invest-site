@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.db import Base, engine
 import app.models  # noqa: F401
-from app.routes.accounts import router as accounts_router
+from app.routes import accounts, market
 
 app = FastAPI(title="Family Investment Site")
 
@@ -11,4 +11,5 @@ async def on_startup():
     Base.metadata.create_all(bind=engine)
 
 
-app.include_router(accounts_router)
+app.include_router(accounts.router)
+app.include_router(market.router)
