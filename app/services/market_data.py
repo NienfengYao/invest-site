@@ -218,8 +218,10 @@ def fetch_and_store_monthly_prices(db: Session) -> dict:
     summary["total_tickers"] = len(ticker_map)
 
     for ticker, first_trade_dt in ticker_map.items():
+        print(f"[DEBUG] ticker={ticker}, first_trade_dt={first_trade_dt}")
         try:
             start_date = get_fetch_start_date(first_trade_dt)
+            print(f"[DEBUG] start_date={start_date}")
             yf_ticker = normalize_yf_ticker(ticker)
 
             existing_rows = (

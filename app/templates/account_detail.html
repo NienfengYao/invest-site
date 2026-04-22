@@ -101,6 +101,38 @@
     </div>
 
     <div class="box">
+        <h2>月資產摘要</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>月份</th>
+                <th>當月淨投入</th>
+                <th>累計淨投入</th>
+                <th>月底市值</th>
+                <th>未實現損益</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if monthly_summary %}
+                {% for row in monthly_summary %}
+                <tr>
+                    <td>{{ row.month }}</td>
+                    <td>{{ row.monthly_invested }}</td>
+                    <td>{{ row.cumulative_invested }}</td>
+                    <td>{{ row.month_end_market_value }}</td>
+                    <td>{{ row.unrealized_gain }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5">目前沒有月資產摘要資料</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
         <h2>交易歷史記錄</h2>
         <table>
             <thead>

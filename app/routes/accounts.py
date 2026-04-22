@@ -11,7 +11,12 @@ from sqlalchemy.exc import IntegrityError
 from app.db import SessionLocal
 from app.models.account import Account
 from app.models.transaction import Transaction
-from app.services.account_summary import calculate_account_summary, calculate_positions
+from app.models.monthly_price import MonthlyPrice
+from app.services.account_summary import (
+    calculate_account_summary,
+    calculate_account_monthly_summary,
+    calculate_positions,
+)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -135,6 +140,13 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
         summary = calculate_account_summary(transactions)
         positions = calculate_positions(transactions)
 
+        monthly_prices = (
+            db.query(MonthlyPrice)
+            .order_by(MonthlyPrice.year_month.asc(), MonthlyPrice.ticker.asc())
+            .all()
+        )
+        monthly_summary = calculate_account_monthly_summary(transactions, monthly_prices)
+
         return templates.TemplateResponse(
             "account_detail.html",
             {
@@ -144,6 +156,7 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
                 "transactions": transactions,
                 "summary": summary,
                 "positions": positions,
+                "monthly_summary": monthly_summary,
                 "sort_by": sort_by,
                 "message": None,
             },
@@ -219,8 +232,16 @@ async def upload_transactions(
 
         query = db.query(Transaction).filter(Transaction.account_id == account_id)
         transactions = query.order_by(Transaction.trade_date.desc(), Transaction.id.desc()).all()
+
         summary = calculate_account_summary(transactions)
         positions = calculate_positions(transactions)
+
+        monthly_prices = (
+            db.query(MonthlyPrice)
+            .order_by(MonthlyPrice.year_month.asc(), MonthlyPrice.ticker.asc())
+            .all()
+        )
+        monthly_summary = calculate_account_monthly_summary(transactions, monthly_prices)
 
         return templates.TemplateResponse(
             "account_detail.html",
@@ -231,6 +252,7 @@ async def upload_transactions(
                 "transactions": transactions,
                 "summary": summary,
                 "positions": positions,
+                "monthly_summary": monthly_summary,
                 "sort_by": "date",
                 "message": f"匯入完成：新增 {inserted_count} 筆，略過 {skipped_count} 筆重複資料",
             },

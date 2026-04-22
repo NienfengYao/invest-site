@@ -7,6 +7,10 @@
   * sudo docker-compose build --no-cache
   * sudo docker-compose up -d
   * sudo docker logs invest-site (看 log 確認啟動正常)
+* 開發模式, 會 reload *.py/*.html
+  * sudo docker-compose up
+    * 改 *.py -> 存檔 -> 自動 reload
+    * 改 template -> 刷新瀏覽器 -> 立即看到
 * 進入container 裡面，執行python 互動模式
   * sudo docker exec -it invest-site python
 
