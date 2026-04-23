@@ -1,5 +1,5 @@
 !Docker
-* Path: /volume1/docker/invest-site
+* Path: cd /volume1/docker/invest-site
 * 列出目前正在運行的 container
   * sudo docker ps [-a]
 * 重建 container (修改 code 後進行測試)
@@ -13,8 +13,8 @@
     * 改 template -> 刷新瀏覽器 -> 立即看到
 * 進入container 裡面，執行python 互動模式
   * sudo docker exec -it invest-site python
-
-
-
-* curl -X POST http://127.0.0.1:8000/update-market-data
-* curl -X POST http://<NAS_IP>:8000/update-market-data
+* 目前需要手動更新月收盤價
+  * curl -X POST http://127.0.0.1:8000/update-market-data
+* Debug
+  * debug/db
+  * debug/health

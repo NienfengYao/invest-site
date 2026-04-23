@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Debug DB</title>
+    <style>
+        body { font-family: Arial; margin: 24px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+        th, td { border: 1px solid #ccc; padding: 6px; font-size: 13px; }
+        th { background: #f0f0f0; }
+        .box { margin-bottom: 24px; }
+        .warn { color: red; font-weight: bold; }
+    </style>
+</head>
+
+<body>
+
+<h1>Debug DB</h1>
+
+<div class="box">
+    <h2>DB Summary</h2>
+    <p>Accounts: {{ account_count }}</p>
+    <p>Transactions: {{ transaction_count }}</p>
+    <p>Monthly Prices: {{ monthly_price_count }}</p>
+</div>
+
+<div class="box">
+    <h2>Recent Transactions</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Stock</th>
+            <th>Date</th>
+            <th>Side</th>
+            <th>Qty</th>
+            <th>Price</th>
+        </tr>
+        {% for t in recent_transactions %}
+        <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.stock_name }}</td>
+            <td>{{ t.trade_date }}</td>
+            <td>{{ t.side }}</td>
+            <td>{{ t.quantity }}</td>
+            <td>{{ t.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="box">
+    <h2>Recent Monthly Prices</h2>
+    <table>
+        <tr>
+            <th>Ticker</th>
+            <th>Month</th>
+            <th>Close</th>
+        </tr>
+        {% for p in recent_prices %}
+        <tr>
+            <td>{{ p.ticker }}</td>
+            <td>{{ p.year_month }}</td>
+            <td>{{ p.close_price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="box">
+    <h2>Unmapped Stock Names</h2>
+
+    {% if unmapped %}
+        <div class="warn">⚠️ 以下股票沒有 mapping：</div>
+        <ul>
+            {% for name in unmapped %}
+            <li>{{ name }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>全部都有 mapping 👍</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

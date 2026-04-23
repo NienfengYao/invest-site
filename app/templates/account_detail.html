@@ -16,6 +16,15 @@
         .actions a { margin-right: 12px; }
         input[type="file"] { margin-top: 8px; }
         button { padding: 8px 14px; cursor: pointer; margin-top: 12px; }
+        .positive {
+            font-weight: bold;
+            color: #e74c3c;   /* 紅色 */
+        }
+
+        .negative {
+            color: #2ecc71;   /* 綠色 */
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -110,6 +119,7 @@
                 <th>累計淨投入</th>
                 <th>月底市值</th>
                 <th>未實現損益</th>
+                <th>報酬率 (%)</th>
             </tr>
             </thead>
             <tbody>
@@ -121,11 +131,16 @@
                     <td>{{ row.cumulative_invested }}</td>
                     <td>{{ row.month_end_market_value }}</td>
                     <td>{{ row.unrealized_gain }}</td>
+                    <td>
+                        <span class="{% if row.return_rate > 0 %}positive{% elif row.return_rate < 0 %}negative{% endif %}">
+                            {{ row.return_rate }}%
+                        </span>
+                    </td>
                 </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="5">目前沒有月資產摘要資料</td>
+                    <td colspan="6">目前沒有月資產摘要資料</td>
                 </tr>
             {% endif %}
             </tbody>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Health Check</title>
+    <style>
+        body { font-family: Arial; margin: 24px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+        th, td { border: 1px solid #ccc; padding: 6px; }
+        th { background: #f0f0f0; }
+
+        .ok { color: green; font-weight: bold; }
+        .warn { color: orange; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+
+<body>
+
+<h1>System Health Check</h1>
+
+<table>
+    <tr>
+        <th>項目</th>
+        <th>狀態</th>
+        <th>說明</th>
+    </tr>
+
+    {% for name, status, msg in checks %}
+    <tr>
+        <td>{{ name }}</td>
+        <td class="
+            {% if status == 'OK' %}ok
+            {% elif status == 'WARN' %}warn
+            {% else %}error
+            {% endif %}
+        ">
+            {{ status }}
+        </td>
+        <td>{{ msg }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Unmapped 股票</h2>
+{% if unmapped %}
+<ul>
+    {% for x in unmapped %}
+    <li>{{ x }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>無 👍</p>
+{% endif %}
+
+<h2>沒有月價的 ticker</h2>
+{% if missing_price_tickers %}
+<ul>
+    {% for x in missing_price_tickers %}
+    <li>{{ x }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>無 👍</p>
+{% endif %}
+
+<h2>缺少月份價格（前20筆）</h2>
+<table>
+    <tr>
+        <th>Ticker</th>
+        <th>Month</th>
+    </tr>
+    {% for t, m in missing_price_cases %}
+    <tr>
+        <td>{{ t }}</td>
+        <td>{{ m }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>

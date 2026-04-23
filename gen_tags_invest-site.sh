@@ -18,7 +18,12 @@ LNX=$PWD
 find  $LNX                                                            \
     -path "$LNX/build"                                    -prune -o   \
     -path "$LNX/AUTOSAR"                                  -prune -o   \
-    -name "*.py" -print >$LNX/cscope.files
+    -name "*.py" -print > $LNX/cscope.files
+
+find  $LNX                                                            \
+    -path "$LNX/build"                                    -prune -o   \
+    -path "$LNX/AUTOSAR"                                  -prune -o   \
+    -name "*.html" -print >> $LNX/cscope.files
 
 cscope -bkq -i cscope.files
 ctags -R

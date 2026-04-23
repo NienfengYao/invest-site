@@ -239,6 +239,7 @@ def calculate_account_monthly_summary(
             market_value += qty * close_price
 
         unrealized_gain = market_value - cumulative_invested
+        return_rate = (unrealized_gain / cumulative_invested * 100) if cumulative_invested > 0 else 0.0
 
         results.append({
             "month": month,
@@ -246,6 +247,7 @@ def calculate_account_monthly_summary(
             "cumulative_invested": round(cumulative_invested, 2),
             "month_end_market_value": round(market_value, 2),
             "unrealized_gain": round(unrealized_gain, 2),
+            "return_rate": round(return_rate, 2),
         })
 
     return results
