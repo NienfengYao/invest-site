@@ -6,7 +6,7 @@ rsync -rlptDv --delete \
   --exclude='.git/' \
   --exclude='.venv/' \
   --exclude='.pytest_cache/' \
-  --exclude='data/uploads/' \
+  --exclude='data/' \
   --exclude='tags' \
   --exclude='cscope.*' \
   --no-perms \

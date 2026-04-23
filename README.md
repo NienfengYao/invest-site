@@ -11,10 +11,12 @@
   * sudo docker-compose up
     * 改 *.py -> 存檔 -> 自動 reload
     * 改 template -> 刷新瀏覽器 -> 立即看到
-* 進入container 裡面，執行python 互動模式
+  * ssh 斷線後，終端 session 消失，重新接回 log
+    * sudo docker logs -f invest-site
+* 進入container 裡面，互動模式
   * sudo docker exec -it invest-site python
+  * sudo docker exec -it invest-site bash
 * 目前需要手動更新月收盤價
   * curl -X POST http://127.0.0.1:8000/update-market-data
 * Debug
   * debug/db
-  * debug/health
