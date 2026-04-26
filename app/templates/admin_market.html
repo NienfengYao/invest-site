@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Market Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 24px;
+            background: #f5f7fa;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 24px;
+        }
+
+        .summary-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .summary-item {
+            min-width: 160px;
+            padding: 14px;
+            border-radius: 8px;
+            background: #f8f9fb;
+            border: 1px solid #eee;
+        }
+
+        .label {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .value {
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Admin Market Data</h1>
+
+<div class="card">
+    <h2>Summary</h2>
+    <div class="summary-grid">
+        <div class="summary-item">
+            <div class="label">Total Tickers</div>
+            <div class="value">{{ total_tickers }}</div>
+        </div>
+
+        <div class="summary-item">
+            <div class="label">Total Monthly Rows</div>
+            <div class="value">{{ total_rows }}</div>
+        </div>
+
+        <div class="summary-item">
+            <div class="label">Latest Month</div>
+            <div class="value">{{ latest_month or "-" }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Ticker Summary</h2>
+
+    <table>
+        <tr>
+            <th>Ticker</th>
+            <th>Rows</th>
+            <th>First Month</th>
+            <th>Last Month</th>
+            <th>Latest Close</th>
+            <th>Latest Date</th>
+        </tr>
+
+        {% if ticker_summaries %}
+            {% for item in ticker_summaries %}
+            <tr>
+                <td>{{ item.ticker }}</td>
+                <td>{{ item.row_count }}</td>
+                <td>{{ item.first_month }}</td>
+                <td>{{ item.last_month }}</td>
+                <td>{{ item.latest_close }}</td>
+                <td>{{ item.latest_date }}</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="6">目前沒有 market data</td>
+            </tr>
+        {% endif %}
+    </table>
+</div>
+
+</body>
+</html>

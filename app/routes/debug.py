@@ -85,6 +85,12 @@ def debug_db(
         tx_query = tx_query.limit(int(limit))
 
     recent_transactions = tx_query.all()
+    recent_prices = (
+        db.query(MonthlyPrice)
+        .order_by(MonthlyPrice.year_month.desc(), MonthlyPrice.ticker.asc())
+        .limit(20)
+        .all()
+    )
 
     # --- 月價 ---
     monthly_prices = db.query(MonthlyPrice).all()
@@ -138,6 +144,7 @@ def debug_db(
             "selected_sort_by": sort_by,
             "selected_sort_order": sort_order,
             "recent_transactions": recent_transactions,
+            "recent_prices": recent_prices,
             "checks": checks,
             "unmapped": unmapped,
             "missing_price_cases": missing_price_cases[:20],
