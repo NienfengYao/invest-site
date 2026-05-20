@@ -7,12 +7,16 @@ from sqlalchemy.orm import Session
 from app.db import SessionLocal
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.models.dividend import Dividend
 from app.models.monthly_price import MonthlyPrice
 from app.models.monthly_holding import MonthlyHolding
 from app.models.monthly_performance import MonthlyPerformance
 from app.services.account_summary import resolve_ticker
 from app.services.cost_engine import rebuild_monthly_holdings
 from app.services.performance_engine import rebuild_monthly_performance
+from app.services.dividend_data import (
+    fetch_and_store_dividends
+)
 
 from fastapi.templating import Jinja2Templates
 
@@ -115,6 +119,16 @@ def debug_db(
         .all()
     )
 
+    recent_dividends = (
+        db.query(Dividend)
+        .order_by(
+            Dividend.ex_dividend_date.desc(),
+            Dividend.ticker.asc()
+        )
+        # .limit(30)
+        .all()
+    )
+
     # --- 月價 ---
     monthly_prices = db.query(MonthlyPrice).all()
     price_map = {(p.ticker, p.year_month) for p in monthly_prices}
@@ -169,6 +183,7 @@ def debug_db(
             "recent_transactions": recent_transactions,
             "recent_prices": recent_prices,
             "recent_holdings": recent_holdings,
+            "recent_dividends": recent_dividends,
             "recent_performance": recent_performance,
             "checks": checks,
             "unmapped": unmapped,
@@ -192,3 +207,9 @@ def debug_rebuild_monthly_performance(
         account_id=account_id,
         db=db,
     )
+
+@router.get("/debug/update-dividends")
+def debug_update_dividends(
+    db: Session = Depends(get_db),
+):
+    return fetch_and_store_dividends(db=db)

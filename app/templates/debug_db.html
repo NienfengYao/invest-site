@@ -267,6 +267,23 @@
         {% endfor %}
     </table>
 
+    <h2>Recent Dividends</h2>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Ticker</th>
+            <th>Ex Dividend Date</th>
+            <th>Dividend Per Share</th>
+        </tr>
+
+        {% for d in recent_dividends %}
+        <tr>
+            <td>{{ d.ticker }}</td>
+            <td>{{ d.ex_dividend_date }}</td>
+            <td>{{ "%.2f"|format(d.dividend_per_share) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
     <h2>Recent Monthly Performance</h2>
     <table border="1" cellpadding="5">
         <tr>
