@@ -218,6 +218,83 @@
             </tr>
         {% endif %}
     </table>
+
+    <h2>Recent Monthly Holdings</h2>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Month</th>
+            <th>Ticker</th>
+            <th>Shares</th>
+            <th>Avg Cost</th>
+            <th>Total Cost</th>
+            <th>Market Price</th>
+            <th>Market Value</th>
+            <th>Unrealized Gain</th>
+        </tr>
+
+        {% for h in recent_holdings %}
+        <tr>
+            <td>{{ h.year_month }}</td>
+            <td>{{ h.ticker }}</td>
+            <td>{{ "%.2f"|format(h.shares) }}</td>
+            <td>{{ "%.2f"|format(h.avg_cost) }}</td>
+            <td>{{ "%.0f"|format(h.total_cost) }}</td>
+
+            <td>
+                {% if h.market_price %}
+                    {{ "%.2f"|format(h.market_price) }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td>
+                {% if h.market_value %}
+                    {{ "%.0f"|format(h.market_value) }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td>
+                {% if h.unrealized_gain %}
+                    {{ "%.0f"|format(h.unrealized_gain) }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Recent Monthly Performance</h2>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Month</th>
+            <th>Buy Amount</th>
+            <th>Sell Amount</th>
+            <th>Dividend</th>
+            <th>Total Cost</th>
+            <th>Market Value</th>
+            <th>Unrealized Gain</th>
+            <th>Total Return</th>
+            <th>Total Return Rate</th>
+        </tr>
+
+        {% for p in recent_performance %}
+        <tr>
+            <td>{{ p.year_month }}</td>
+            <td>{{ "%.0f"|format(p.buy_amount) }}</td>
+            <td>{{ "%.0f"|format(p.sell_amount) }}</td>
+            <td>{{ "%.0f"|format(p.dividend_amount) }}</td>
+            <td>{{ "%.0f"|format(p.total_cost) }}</td>
+            <td>{{ "%.0f"|format(p.market_value) }}</td>
+            <td>{{ "%.0f"|format(p.unrealized_gain) }}</td>
+            <td>{{ "%.0f"|format(p.total_return) }}</td>
+            <td>{{ "%.2f"|format(p.return_rate * 100) }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
 </div>
 
 <div class="box">

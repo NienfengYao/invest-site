@@ -18,5 +18,9 @@
   * sudo docker exec -it invest-site bash
 * 目前需要手動更新月收盤價
   * curl -X POST http://127.0.0.1:8000/update-market-data
+  * http://NAS-IP:8000/debug/
+    * rebuild-monthly-holdings/1
+    * rebuild-monthly-performance/1
+/debug/rebuild-monthly-performance/1
 * Debug
   * debug/db

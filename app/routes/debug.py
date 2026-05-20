@@ -8,7 +8,11 @@ from app.db import SessionLocal
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.monthly_price import MonthlyPrice
+from app.models.monthly_holding import MonthlyHolding
+from app.models.monthly_performance import MonthlyPerformance
 from app.services.account_summary import resolve_ticker
+from app.services.cost_engine import rebuild_monthly_holdings
+from app.services.performance_engine import rebuild_monthly_performance
 
 from fastapi.templating import Jinja2Templates
 
@@ -88,7 +92,26 @@ def debug_db(
     recent_prices = (
         db.query(MonthlyPrice)
         .order_by(MonthlyPrice.year_month.desc(), MonthlyPrice.ticker.asc())
-        .limit(20)
+        # .limit(20)
+        .all()
+    )
+
+    recent_holdings = (
+        db.query(MonthlyHolding)
+        .filter(MonthlyHolding.account_id == selected_account_id)
+        .order_by(
+            MonthlyHolding.year_month.desc(),
+            MonthlyHolding.ticker.asc()
+        )
+        # .limit(30)
+        .all()
+    )
+
+    recent_performance = (
+        db.query(MonthlyPerformance)
+        .filter(MonthlyPerformance.account_id == selected_account_id)
+        .order_by(MonthlyPerformance.year_month.desc())
+        # .limit(24)
         .all()
     )
 
@@ -145,8 +168,27 @@ def debug_db(
             "selected_sort_order": sort_order,
             "recent_transactions": recent_transactions,
             "recent_prices": recent_prices,
+            "recent_holdings": recent_holdings,
+            "recent_performance": recent_performance,
             "checks": checks,
             "unmapped": unmapped,
             "missing_price_cases": missing_price_cases[:20],
         },
+    )
+
+@router.get("/debug/rebuild-monthly-holdings/{account_id}")
+def debug_rebuild_monthly_holdings(
+    account_id: int,
+    db: Session = Depends(get_db),
+):
+    return rebuild_monthly_holdings(account_id=account_id, db=db)
+
+@router.get("/debug/rebuild-monthly-performance/{account_id}")
+def debug_rebuild_monthly_performance(
+    account_id: int,
+    db: Session = Depends(get_db),
+):
+    return rebuild_monthly_performance(
+        account_id=account_id,
+        db=db,
     )
