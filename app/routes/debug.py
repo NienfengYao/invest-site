@@ -14,9 +14,8 @@ from app.models.monthly_performance import MonthlyPerformance
 from app.services.account_summary import resolve_ticker
 from app.services.cost_engine import rebuild_monthly_holdings
 from app.services.performance_engine import rebuild_monthly_performance
-from app.services.dividend_data import (
-    fetch_and_store_dividends
-)
+from app.services.dividend_data import fetch_and_store_dividends
+from app.services.rebuild_from_uploads import rebuild_from_uploads
 
 from fastapi.templating import Jinja2Templates
 
@@ -213,3 +212,13 @@ def debug_update_dividends(
     db: Session = Depends(get_db),
 ):
     return fetch_and_store_dividends(db=db)
+
+@router.get("/debug/rebuild-from-uploads/{account_id}")
+def debug_rebuild_from_uploads(
+    account_id: int,
+    db: Session = Depends(get_db),
+):
+    return rebuild_from_uploads(
+        account_id=account_id,
+        db=db,
+    )

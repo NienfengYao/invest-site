@@ -28,6 +28,8 @@ class MonthlyPerformance(Base):
 
     dividend_amount = Column(Float, nullable=False, default=0)
 
+    cumulative_dividend = Column(Float, nullable=False, default=0)
+
     realized_gain = Column(Float, nullable=False, default=0)
 
     unrealized_gain = Column(Float, nullable=False, default=0)

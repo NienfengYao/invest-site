@@ -184,6 +184,7 @@ def rebuild_monthly_performance(account_id: int, db: Session):
     all_months.update(monthly_dividend.keys())
 
     created = 0
+    cumulative_dividend = 0
 
     for ym in sorted(all_months):
 
@@ -196,8 +197,9 @@ def rebuild_monthly_performance(account_id: int, db: Session):
 
         unrealized_gain = monthly_unrealized_gain.get(ym, 0)
 
-        # v1: no dividend yet
         dividend_amount = monthly_dividend.get(ym, 0)
+
+        cumulative_dividend += dividend_amount
 
         # v1: no realized gain yet
         realized_gain = 0
@@ -205,7 +207,6 @@ def rebuild_monthly_performance(account_id: int, db: Session):
         total_return = (
             unrealized_gain
             + realized_gain
-            + dividend_amount
         )
 
         return_rate = 0
@@ -222,6 +223,7 @@ def rebuild_monthly_performance(account_id: int, db: Session):
             sell_amount=sell_amount,
 
             dividend_amount=dividend_amount,
+            cumulative_dividend=cumulative_dividend,
 
             realized_gain=realized_gain,
             unrealized_gain=unrealized_gain,

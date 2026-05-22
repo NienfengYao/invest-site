@@ -290,7 +290,8 @@
             <th>Month</th>
             <th>Buy Amount</th>
             <th>Sell Amount</th>
-            <th>Dividend</th>
+            <th>Monthly Dividend</th>
+            <th>Cumulative Dividend</th>
             <th>Total Cost</th>
             <th>Market Value</th>
             <th>Unrealized Gain</th>
@@ -304,6 +305,7 @@
             <td>{{ "%.0f"|format(p.buy_amount) }}</td>
             <td>{{ "%.0f"|format(p.sell_amount) }}</td>
             <td>{{ "%.0f"|format(p.dividend_amount) }}</td>
+            <td>{{ "%.0f"|format(p.cumulative_dividend) }}</td>
             <td>{{ "%.0f"|format(p.total_cost) }}</td>
             <td>{{ "%.0f"|format(p.market_value) }}</td>
             <td>{{ "%.0f"|format(p.unrealized_gain) }}</td>

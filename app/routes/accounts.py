@@ -147,6 +147,12 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
         )
         monthly_summary = calculate_account_monthly_summary(transactions, monthly_prices)
 
+        monthly_summary = sorted(
+            monthly_summary,
+            key=lambda x: x["month"],
+            reverse=True,
+        )
+
         return templates.TemplateResponse(
             "account_detail.html",
             {
