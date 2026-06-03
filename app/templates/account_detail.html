@@ -148,6 +148,33 @@
     </div>
 
     <div class="box">
+    <h2>Monthly Performance (New)</h2>
+
+    <table>
+    <tr>
+        <th>Month</th>
+        <th>Total Cost</th>
+        <th>Market Value</th>
+        <th>Unrealized Gain</th>
+        <th>Total Return</th>
+        <th>Return Rate</th>
+    </tr>
+
+    {% for p in performance_rows %}
+    <tr>
+        <td>{{ p.year_month }}</td>
+        <td>{{ "%.0f"|format(p.total_cost) }}</td>
+        <td>{{ "%.0f"|format(p.market_value) }}</td>
+        <td>{{ "%.0f"|format(p.unrealized_gain) }}</td>
+        <td>{{ "%.0f"|format(p.total_return) }}</td>
+        <td>{{ "%.2f"|format(p.return_rate * 100) }}%</td>
+    </tr>
+    {% endfor %}
+
+    </table>
+    </div>
+
+    <div class="box">
         <h2>交易歷史記錄</h2>
         <table>
             <thead>

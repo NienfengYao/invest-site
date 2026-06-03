@@ -8,7 +8,7 @@ from app.db import Base
 class Transaction(Base):
     __tablename__ = "transactions"
     __table_args__ = (
-        UniqueConstraint("account_id", "order_id", name="uq_transactions_account_order"),
+        UniqueConstraint("account_id", "trade_date", "order_id"),
     )
 
     id = Column(Integer, primary_key=True, index=True)

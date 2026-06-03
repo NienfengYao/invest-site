@@ -17,6 +17,7 @@ from app.services.account_summary import (
     calculate_account_monthly_summary,
     calculate_positions,
 )
+from app.models.monthly_performance import MonthlyPerformance
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -153,6 +154,18 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
             reverse=True,
         )
 
+        performance_rows = (
+            db.query(MonthlyPerformance)
+            .filter(
+                MonthlyPerformance.account_id == account_id
+            )
+            .order_by(
+                MonthlyPerformance.year_month.desc()
+            )
+            .all()
+        )
+
+
         return templates.TemplateResponse(
             "account_detail.html",
             {
@@ -163,6 +176,7 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
                 "summary": summary,
                 "positions": positions,
                 "monthly_summary": monthly_summary,
+                "performance_rows": performance_rows,
                 "sort_by": sort_by,
                 "message": None,
             },
@@ -206,10 +220,12 @@ async def upload_transactions(
                 db.query(Transaction)
                 .filter(
                     Transaction.account_id == account_id,
+                    Transaction.trade_date == str(row["日期"]).strip(),
                     Transaction.order_id == order_id,
                 )
                 .first()
             )
+
             if existed:
                 skipped_count += 1
                 continue

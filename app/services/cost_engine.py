@@ -101,6 +101,22 @@ def _apply_sell(state: HoldingState, quantity: float, net_amount: float) -> floa
     return realized_gain
 
 
+def _iter_months(start_ym: str, end_ym: str):
+    start_year, start_month = map(int, start_ym.split("-"))
+    end_year, end_month = map(int, end_ym.split("-"))
+
+    year = start_year
+    month = start_month
+
+    while (year < end_year) or (year == end_year and month <= end_month):
+        yield f"{year:04d}-{month:02d}"
+
+        month += 1
+        if month == 13:
+            month = 1
+            year += 1
+
+
 def rebuild_monthly_holdings(account_id: int, db: Session) -> dict:
     """
     Rebuild monthly holding snapshots for one account.
@@ -134,37 +150,54 @@ def rebuild_monthly_holdings(account_id: int, db: Session) -> dict:
 
     price_map = _get_monthly_price_map(db)
 
+
     holdings: Dict[str, HoldingState] = defaultdict(HoldingState)
     monthly_snapshots = {}
-
     realized_gain_by_month = defaultdict(float)
 
+    # 依月份分組交易
+    tx_by_month = defaultdict(list)
     for tx in transactions:
         trade_date = _get_trade_date(tx)
         ym = _year_month(trade_date)
+        tx_by_month[ym].append(tx)
 
-        # ticker = normalize_ticker(tx.ticker)
-        ticker = normalize_ticker(resolve_ticker(tx.stock_name))
-        quantity = float(tx.quantity or 0)
-        net_amount = float(tx.net_amount or 0)
+    first_month = min(tx_by_month.keys())
 
-        tx_type = (tx.side or "").upper()
+    # 最後月份：用 monthly_prices 的最後月份
+    price_months = [ym for (_ticker, ym) in price_map.keys()]
+    if price_months:
+        last_month = max(price_months)
+    else:
+        last_month = max(tx_by_month.keys())
 
-        state = holdings[ticker]
+    # 逐月建立 snapshot，沒有交易的月份也 carry-forward
+    for ym in _iter_months(first_month, last_month):
+        month_txs = tx_by_month.get(ym, [])
 
-        if tx_type == "BUY":
-            _apply_buy(state, quantity, net_amount)
+        for tx in month_txs:
+            ticker = normalize_ticker(resolve_ticker(tx.stock_name))
+            quantity = float(tx.quantity or 0)
+            net_amount = float(tx.net_amount or 0)
+            tx_type = (tx.side or "").upper()
 
-        elif tx_type == "SELL":
-            realized_gain = _apply_sell(state, quantity, net_amount)
-            realized_gain_by_month[ym] += realized_gain
+            state = holdings[ticker]
 
-        else:
-            continue
+            if tx_type == "BUY":
+                _apply_buy(state, quantity, net_amount)
 
-        # 每筆交易後，都記錄當月月底狀態。
-        # 同一月份多筆交易會被後面的狀態覆蓋，最後留下月底持股。
+            elif tx_type == "SELL":
+                realized_gain = _apply_sell(state, quantity, net_amount)
+                realized_gain_by_month[ym] += realized_gain
+
+            else:
+                continue
+
+        # 每個月月底都記錄一次持股狀態
         for holding_ticker, holding_state in holdings.items():
+            if holding_state.shares <= 0:
+                continue
+
             monthly_snapshots[(ym, holding_ticker)] = HoldingState(
                 shares=holding_state.shares,
                 total_cost=holding_state.total_cost,
@@ -200,6 +233,7 @@ def rebuild_monthly_holdings(account_id: int, db: Session) -> dict:
         created += 1
 
     db.commit()
+
 
     return {
         "account_id": account_id,
