@@ -14,7 +14,6 @@ from app.models.transaction import Transaction
 from app.models.monthly_price import MonthlyPrice
 from app.services.account_summary import (
     calculate_account_summary,
-    calculate_account_monthly_summary,
     calculate_positions,
 )
 from app.models.monthly_performance import MonthlyPerformance
@@ -146,13 +145,6 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
             .order_by(MonthlyPrice.year_month.asc(), MonthlyPrice.ticker.asc())
             .all()
         )
-        monthly_summary = calculate_account_monthly_summary(transactions, monthly_prices)
-
-        monthly_summary = sorted(
-            monthly_summary,
-            key=lambda x: x["month"],
-            reverse=True,
-        )
 
         performance_rows = (
             db.query(MonthlyPerformance)
@@ -175,7 +167,6 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
                 "transactions": transactions,
                 "summary": summary,
                 "positions": positions,
-                "monthly_summary": monthly_summary,
                 "performance_rows": performance_rows,
                 "sort_by": sort_by,
                 "message": None,
@@ -263,7 +254,6 @@ async def upload_transactions(
             .order_by(MonthlyPrice.year_month.asc(), MonthlyPrice.ticker.asc())
             .all()
         )
-        monthly_summary = calculate_account_monthly_summary(transactions, monthly_prices)
 
         return templates.TemplateResponse(
             "account_detail.html",
@@ -274,7 +264,6 @@ async def upload_transactions(
                 "transactions": transactions,
                 "summary": summary,
                 "positions": positions,
-                "monthly_summary": monthly_summary,
                 "sort_by": "date",
                 "message": f"匯入完成：新增 {inserted_count} 筆，略過 {skipped_count} 筆重複資料",
             },
