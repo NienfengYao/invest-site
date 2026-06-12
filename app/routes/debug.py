@@ -1,7 +1,8 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
@@ -212,6 +213,45 @@ def debug_update_dividends(
     db: Session = Depends(get_db),
 ):
     return fetch_and_store_dividends(db=db)
+
+@router.post("/admin/update-dividends", response_class=HTMLResponse)
+def update_dividends_from_page(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    try:
+        result = fetch_and_store_dividends(db=db)
+
+        display_result = {
+            "總股票數": result.get("total_tickers", 0),
+            "成功股票": result.get("success", []),
+            "新增股息筆數": result.get("inserted_rows", 0),
+            "失敗股票": result.get("failed", []),
+        }
+
+        return templates.TemplateResponse(
+            "maintenance_result.html",
+            {
+                "request": request,
+                "title": "股息資訊更新完成",
+                "success": True,
+                "result": display_result,
+                "message": "股息資訊已更新完成。",
+            },
+        )
+
+    except Exception as exc:
+        return templates.TemplateResponse(
+            "maintenance_result.html",
+            {
+                "request": request,
+                "title": "股息資訊更新失敗",
+                "success": False,
+                "result": {},
+                "message": str(exc),
+            },
+            status_code=500,
+        )
 
 @router.get("/debug/rebuild-from-uploads/{account_id}")
 def debug_rebuild_from_uploads(

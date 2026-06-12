@@ -17,6 +17,8 @@ from app.services.account_summary import (
     calculate_positions,
 )
 from app.models.monthly_performance import MonthlyPerformance
+from app.services.cost_engine import rebuild_monthly_holdings
+from app.services.performance_engine import rebuild_monthly_performance
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -255,6 +257,13 @@ async def upload_transactions(
             .all()
         )
 
+        performance_rows = (
+            db.query(MonthlyPerformance)
+            .filter(MonthlyPerformance.account_id == account_id)
+            .order_by(MonthlyPerformance.year_month.desc())
+            .all()
+        )
+
         return templates.TemplateResponse(
             "account_detail.html",
             {
@@ -262,6 +271,7 @@ async def upload_transactions(
                 "title": f"帳戶管理 - {account.name}",
                 "account": account,
                 "transactions": transactions,
+                "performance_rows": performance_rows,
                 "summary": summary,
                 "positions": positions,
                 "sort_by": "date",
@@ -287,12 +297,32 @@ async def upload_transactions(
                 "title": f"帳戶管理 - {account.name if account else account_id}",
                 "account": account,
                 "transactions": transactions,
+                "performance_rows": performance_rows,
                 "summary": summary,
                 "positions": positions,
                 "sort_by": "date",
                 "message": f"匯入失敗：{exc}",
             },
             status_code=400,
+        )
+    finally:
+        db.close()
+
+
+@router.post("/accounts/{account_id}/rebuild")
+async def rebuild_account_performance(account_id: int):
+    db = SessionLocal()
+    try:
+        account = db.query(Account).filter(Account.id == account_id).first()
+        if not account:
+            return HTMLResponse("Account not found", status_code=404)
+
+        rebuild_monthly_holdings(account_id=account_id, db=db)
+        rebuild_monthly_performance(account_id=account_id, db=db)
+
+        return RedirectResponse(
+            url=f"/accounts/{account_id}",
+            status_code=303,
         )
     finally:
         db.close()

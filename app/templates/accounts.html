@@ -45,6 +45,18 @@
         <p>目前尚無帳戶</p>
         {% endif %}
     </div>
+
+    <div class="box">
+        <h2>全域資料維護</h2>
+        <form action="/admin/update-market-data" method="post">
+            <button type="submit">更新月收盤價</button>
+        </form>
+        <form action="/admin/update-dividends" method="post">
+            <button type="submit">更新股息資訊</button>
+        </form>
+    </div>
+
+
 </div>
 </body>
 </html>

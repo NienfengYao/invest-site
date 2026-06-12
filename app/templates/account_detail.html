@@ -52,6 +52,20 @@
     </div>
 
     <div class="box">
+        <h2>系統維護</h2>
+
+        <form action="/accounts/{{ account.id }}/rebuild" method="post">
+            <button type="submit">重建此帳戶績效資料</button>
+        </form>
+
+        <p>
+            <a href="/debug/db?account_id={{ account.id }}">
+                查看此帳戶 Debug DB
+            </a>
+        </p>
+    </div>
+
+    <div class="box">
         <h2>帳戶摘要</h2>
         <table>
             <tr>
