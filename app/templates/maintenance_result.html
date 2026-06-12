@@ -45,6 +45,12 @@
     <p>{{ message }}</p>
     {% endif %}
 
+    {% if back_url %}
+    <p>
+        <a href="{{ back_url }}">返回帳戶頁</a>
+    </p>
+    {% endif %}
+
     <p>
         <a href="/">返回首頁</a>
     </p>

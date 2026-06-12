@@ -125,7 +125,7 @@ async def create_account(request: Request, account_name: str = Form(...)):
 
 
 @router.get("/accounts/{account_id}", response_class=HTMLResponse)
-async def account_detail(request: Request, account_id: int, sort_by: str = "date"):
+async def account_detail(request: Request, account_id: int):
     db = SessionLocal()
     try:
         account = db.query(Account).filter(Account.id == account_id).first()
@@ -134,10 +134,7 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
 
         query = db.query(Transaction).filter(Transaction.account_id == account_id)
 
-        if sort_by == "stock":
-            transactions = query.order_by(Transaction.stock_name.asc(), Transaction.trade_date.asc()).all()
-        else:
-            transactions = query.order_by(Transaction.trade_date.desc(), Transaction.id.desc()).all()
+        transactions = query.order_by(Transaction.trade_date.desc(), Transaction.id.desc()).all()
 
         summary = calculate_account_summary(transactions)
         positions = calculate_positions(transactions)
@@ -159,6 +156,34 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
             .all()
         )
 
+        latest_month = (
+            db.query(MonthlyPerformance)
+            .filter(
+                MonthlyPerformance.account_id == account_id
+            )
+            .order_by(
+                MonthlyPerformance.year_month.desc()
+            )
+            .first()
+        )
+
+        latest_performance = (
+            db.query(MonthlyPerformance)
+            .filter(
+                MonthlyPerformance.account_id == account_id
+            )
+            .order_by(
+                MonthlyPerformance.created_at.desc()
+            )
+            .first()
+        )
+
+        last_rebuilt_at = (
+            latest_performance.created_at
+            if latest_performance
+            else None
+        )
+
 
         return templates.TemplateResponse(
             "account_detail.html",
@@ -170,8 +195,9 @@ async def account_detail(request: Request, account_id: int, sort_by: str = "date
                 "summary": summary,
                 "positions": positions,
                 "performance_rows": performance_rows,
-                "sort_by": sort_by,
                 "message": None,
+                "last_rebuilt_at": last_rebuilt_at,
+                "latest_month": latest_month,
             },
         )
     finally:
@@ -274,7 +300,6 @@ async def upload_transactions(
                 "performance_rows": performance_rows,
                 "summary": summary,
                 "positions": positions,
-                "sort_by": "date",
                 "message": f"匯入完成：新增 {inserted_count} 筆，略過 {skipped_count} 筆重複資料",
             },
         )
@@ -300,7 +325,6 @@ async def upload_transactions(
                 "performance_rows": performance_rows,
                 "summary": summary,
                 "positions": positions,
-                "sort_by": "date",
                 "message": f"匯入失敗：{exc}",
             },
             status_code=400,
@@ -310,19 +334,58 @@ async def upload_transactions(
 
 
 @router.post("/accounts/{account_id}/rebuild")
-async def rebuild_account_performance(account_id: int):
+async def rebuild_account_performance(
+    request: Request,
+    account_id: int,
+):
     db = SessionLocal()
     try:
         account = db.query(Account).filter(Account.id == account_id).first()
         if not account:
             return HTMLResponse("Account not found", status_code=404)
 
-        rebuild_monthly_holdings(account_id=account_id, db=db)
-        rebuild_monthly_performance(account_id=account_id, db=db)
-
-        return RedirectResponse(
-            url=f"/accounts/{account_id}",
-            status_code=303,
+        holdings_result = rebuild_monthly_holdings(
+            account_id=account_id,
+            db=db,
         )
+
+        performance_result = rebuild_monthly_performance(
+            account_id=account_id,
+            db=db,
+        )
+
+        result = {
+            "帳戶": account.name,
+            "交易筆數": holdings_result.get("transactions", 0),
+            "Monthly Holdings": holdings_result.get("snapshots_created", 0),
+            "Monthly Performance": performance_result.get("rows_created", 0),
+        }
+
+        return templates.TemplateResponse(
+            "maintenance_result.html",
+            {
+                "request": request,
+                "title": "帳戶績效重建完成",
+                "success": True,
+                "result": result,
+                "message": f"{account.name} 帳戶績效資料已完成重建",
+                "back_url": f"/accounts/{account_id}",
+            },
+        )
+
+    except Exception as exc:
+        return templates.TemplateResponse(
+            "maintenance_result.html",
+            {
+                "request": request,
+                "title": "帳戶績效重建失敗",
+                "success": False,
+                "result": {},
+                "message": str(exc),
+                "back_url": f"/accounts/{account_id}",
+            },
+            status_code=500,
+        )
+
     finally:
         db.close()

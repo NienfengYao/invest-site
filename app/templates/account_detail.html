@@ -32,8 +32,6 @@
     <h1>{{ account.name }}</h1>
     <div class="actions">
         <a href="/">回首頁</a>
-        <a href="/accounts/{{ account.id }}?sort_by=date">依日期排序</a>
-        <a href="/accounts/{{ account.id }}?sort_by=stock">依股名排序</a>
     </div>
 
     {% if message %}
@@ -54,6 +52,19 @@
     <div class="box">
         <h2>系統維護</h2>
 
+        <p>
+        最後績效月份：
+        {{ latest_month.year_month if latest_month else "無資料" }}
+        </p>
+        <p>
+            最後重建時間：
+
+            {% if last_rebuilt_at %}
+                {{ last_rebuilt_at.strftime("%Y-%m-%d %H:%M:%S") }}
+            {% else %}
+                尚未重建
+            {% endif %}
+        </p>
         <form action="/accounts/{{ account.id }}/rebuild" method="post">
             <button type="submit">重建此帳戶績效資料</button>
         </form>
@@ -124,16 +135,16 @@
     </div>
 
     <div class="box">
-    <h2>Monthly Performance</h2>
+    <h2>月績效摘要</h2>
 
     <table>
     <tr>
-        <th>Month</th>
-        <th>Total Cost</th>
-        <th>Market Value</th>
-        <th>Unrealized Gain</th>
-        <th>Total Return</th>
-        <th>Return Rate</th>
+        <th>月份</th>
+        <th>累計成本Cost</th>
+        <th>月底市值</th>
+        <th>未實現損益</th>
+        <th>總報酬</th>
+        <th>總報酬率</th>
     </tr>
 
     {% for p in performance_rows %}
@@ -143,7 +154,11 @@
         <td>{{ "%.0f"|format(p.market_value) }}</td>
         <td>{{ "%.0f"|format(p.unrealized_gain) }}</td>
         <td>{{ "%.0f"|format(p.total_return) }}</td>
-        <td>{{ "%.2f"|format(p.return_rate * 100) }}%</td>
+        <td>
+            <span class="{% if p.return_rate > 0 %}positive{% elif p.return_rate < 0 %}negative{% endif %}">
+                {{ "%.2f"|format(p.return_rate * 100) }}%
+            </span>
+        </td>
     </tr>
     {% endfor %}
 
