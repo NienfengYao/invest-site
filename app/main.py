@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.db import Base, engine
 import app.models  # noqa: F401
 from app.routes import accounts, market, debug, admin_market
+from app.models.maintenance_log import MaintenanceLog
 
 app = FastAPI(title="Family Investment Site")
 

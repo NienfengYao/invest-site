@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.services.market_data import fetch_and_store_monthly_prices 
+from app.models.maintenance_log import MaintenanceLog
 
 router = APIRouter(tags=["market"])
 templates = Jinja2Templates(directory="app/templates")
@@ -42,6 +43,16 @@ def update_market_data_from_page(
             "失敗股票": result.get("failed_tickers", []),
         }
 
+        log = MaintenanceLog(
+            task_name="market_price_update",
+            success=True,
+            message="月收盤價更新完成",
+            created_count=result.get("inserted_rows", 0),
+            updated_count=result.get("updated_rows", 0),
+        )
+        db.add(log)
+        db.commit()
+
         return templates.TemplateResponse(
             "maintenance_result.html",
             {
@@ -54,6 +65,16 @@ def update_market_data_from_page(
         )
 
     except Exception as exc:
+        log = MaintenanceLog(
+            task_name="market_price_update",
+            success=False,
+            message=str(exc),
+            created_count=0,
+            updated_count=0,
+        )
+        db.add(log)
+        db.commit()
+
         return templates.TemplateResponse(
             "maintenance_result.html",
             {

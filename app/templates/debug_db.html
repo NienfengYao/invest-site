@@ -66,12 +66,46 @@
 	    color: #666;
 	}
 
+    .actions {
+        margin-bottom: 20px;
+    }
+
+    .actions a {
+        text-decoration: none;
+        font-weight: bold;
+    }
+
     </style>
 </head>
 
 <body>
 
 <h1>Debug DB</h1>
+
+    <div class="actions">
+        <a href="/accounts/{{ selected_account.id }}">
+            ← 返回帳戶頁
+        </a>
+    </div>
+
+    <div class="box">
+        <h2>Account Information</h2>
+
+        {% if selected_account %}
+            <p><strong>帳戶名稱：</strong>{{ selected_account.name }}</p>
+            <p><strong>Account ID：</strong>{{ selected_account.id }}</p>
+        {% else %}
+            <p class="warn">找不到帳戶資料</p>
+        {% endif %}
+
+        {% if latest_performance %}
+            <p><strong>最後績效月份：</strong>{{ latest_performance.year_month }}</p>
+            <p><strong>最後重建時間：</strong>{{ latest_performance.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</p>
+        {% else %}
+            <p><strong>最後績效月份：</strong>尚未重建</p>
+            <p><strong>最後重建時間：</strong>尚未重建</p>
+        {% endif %}
+    </div>
 
     <h2>Health Check</h2>
 
@@ -114,8 +148,7 @@
     {% endif %}
 
 <div class="box">
-    <h2>DB Summary</h2>
-    <p>Accounts: {{ account_count }}</p>
+    <h2>Account Summary</h2>
     <p>Transactions: {{ transaction_count }}</p>
     <p>Monthly Prices: {{ monthly_price_count }}</p>
 </div>
@@ -124,65 +157,6 @@
 
 
     <h2>Recent Transactions</h2>
-
-    <form method="get" action="/debug/db">
-        <div class="filter-row">
-            <div class="filter-group">
-                <label for="account_id">帳戶</label>
-                <select name="account_id" id="account_id">
-                    {% for account in accounts %}
-                    <option value="{{ account.id }}"
-                        {% if selected_account_id == account.id %}selected{% endif %}>
-                        {{ account.id }} - {{ account.name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label for="limit">顯示筆數</label>
-                <select name="limit" id="limit">
-                    <option value="10" {% if selected_limit == "10" %}selected{% endif %}>10</option>
-                    <option value="50" {% if selected_limit == "50" %}selected{% endif %}>50</option>
-                    <option value="100" {% if selected_limit == "100" %}selected{% endif %}>100</option>
-                    <option value="all" {% if selected_limit == "all" %}selected{% endif %}>All</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label for="stocks">股票（可多選）</label>
-                <select name="stocks" id="stocks" multiple size="6">
-                    {% for stock in available_stocks %}
-                    <option value="{{ stock }}"
-                        {% if stock in selected_stocks %}selected{% endif %}>
-                        {{ stock }}
-                    </option>
-                    {% endfor %}
-                </select>
-                <div class="hint">Windows: Ctrl，多選；Mac: Command，多選</div>
-            </div>
-
-            <div class="filter-group">
-                <label for="sort_by">排序欄位</label>
-                <select name="sort_by" id="sort_by">
-                    <option value="trade_date" {% if selected_sort_by == "trade_date" %}selected{% endif %}>Date</option>
-                    <option value="side" {% if selected_sort_by == "side" %}selected{% endif %}>Side</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label for="sort_order">排序方向</label>
-                <select name="sort_order" id="sort_order">
-                    <option value="desc" {% if selected_sort_order == "desc" %}selected{% endif %}>Desc</option>
-                    <option value="asc" {% if selected_sort_order == "asc" %}selected{% endif %}>Asc</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <button type="submit">套用</button>
-            </div>
-        </div>
-    </form>
 
     <table>
         <tr>

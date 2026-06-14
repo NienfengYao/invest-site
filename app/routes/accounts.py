@@ -12,6 +12,7 @@ from app.db import SessionLocal
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.monthly_price import MonthlyPrice
+from app.models.maintenance_log import MaintenanceLog
 from app.services.account_summary import (
     calculate_account_summary,
     calculate_positions,
@@ -72,6 +73,29 @@ async def home(request: Request):
     db = SessionLocal()
     try:
         accounts = db.query(Account).order_by(Account.name.asc()).all()
+
+        last_market_update = (
+            db.query(MaintenanceLog)
+            .filter(
+                MaintenanceLog.task_name == "market_price_update"
+            )
+            .order_by(
+                MaintenanceLog.created_at.desc()
+            )
+            .first()
+        )
+
+        last_dividend_update = (
+            db.query(MaintenanceLog)
+            .filter(
+                MaintenanceLog.task_name == "dividend_update"
+            )
+            .order_by(
+                MaintenanceLog.created_at.desc()
+            )
+            .first()
+        )
+
         return templates.TemplateResponse(
             "accounts.html",
             {
@@ -79,6 +103,8 @@ async def home(request: Request):
                 "title": "家庭投資收益管理",
                 "accounts": accounts,
                 "message": None,
+                "last_market_update": last_market_update,
+                "last_dividend_update": last_dividend_update,
             },
         )
     finally:

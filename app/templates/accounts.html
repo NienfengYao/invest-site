@@ -48,6 +48,43 @@
 
     <div class="box">
         <h2>全域資料維護</h2>
+
+        {% if last_market_update %}
+        <p>
+            <strong>月收盤價更新：</strong>
+            {{ last_market_update.created_at.strftime("%Y-%m-%d %H:%M:%S") }}
+
+            {% if last_market_update.success %}
+                ✓
+            {% else %}
+                ✗
+            {% endif %}
+        </p>
+        {% else %}
+        <p>
+            <strong>月收盤價更新：</strong>
+            尚未更新
+        </p>
+        {% endif %}
+
+        {% if last_dividend_update %}
+        <p>
+            <strong>股息更新：</strong>
+            {{ last_dividend_update.created_at.strftime("%Y-%m-%d %H:%M:%S") }}
+
+            {% if last_dividend_update.success %}
+                ✓
+            {% else %}
+                ✗
+            {% endif %}
+        </p>
+        {% else %}
+        <p>
+            <strong>股息更新：</strong>
+            尚未更新
+        </p>
+        {% endif %}
+
         <form action="/admin/update-market-data" method="post">
             <button type="submit">更新月收盤價</button>
         </form>

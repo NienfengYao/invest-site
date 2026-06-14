@@ -53,6 +53,18 @@ def debug_db(
 
     # ⭐ 強制選擇帳戶
     selected_account_id = account_id or accounts[0].id
+    selected_account = (
+        db.query(Account)
+        .filter(Account.id == selected_account_id)
+        .first()
+    )
+
+    latest_performance = (
+        db.query(MonthlyPerformance)
+        .filter(MonthlyPerformance.account_id == selected_account_id)
+        .order_by(MonthlyPerformance.year_month.desc())
+        .first()
+    )
 
     # --- DB counts ---
     account_count = db.query(Account).count()
@@ -196,6 +208,8 @@ def debug_db(
             "unmapped": unmapped,
             "missing_price_cases": missing_price_cases[:20],
             "missing_price_details": missing_price_details,
+            "selected_account": selected_account,
+            "latest_performance": latest_performance,
         },
     )
 
