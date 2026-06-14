@@ -154,41 +154,6 @@
 </div>
 
 <div class="box">
-
-
-    <h2>Recent Transactions</h2>
-
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Account</th>
-            <th>Stock</th>
-            <th>Date</th>
-            <th>Side</th>
-            <th>Qty</th>
-            <th>Price</th>
-        </tr>
-        {% if recent_transactions %}
-            {% for t in recent_transactions %}
-            <tr>
-                <td>{{ t.id }}</td>
-                <td>{{ t.account_id }}</td>
-                <td>{{ t.stock_name }}</td>
-                <td>{{ t.trade_date }}</td>
-                <td>{{ t.side }}</td>
-                <td>{{ t.quantity }}</td>
-                <td>{{ t.price }}</td>
-            </tr>
-            {% endfor %}
-        {% else %}
-            <tr>
-                <td colspan="7">目前沒有符合條件的交易資料</td>
-            </tr>
-        {% endif %}
-    </table>
-</div>
-
-<div class="box">
     <h2>Recent Monthly Prices</h2>
     <table>
         <tr>

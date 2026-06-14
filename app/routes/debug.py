@@ -84,28 +84,6 @@ def debug_db(
         .all()
     ]
 
-    # --- recent transactions ---
-    tx_query = db.query(Transaction).filter(
-        Transaction.account_id == selected_account_id
-    )
-
-    if stocks:
-        tx_query = tx_query.filter(Transaction.stock_name.in_(stocks))
-
-    if sort_by == "side":
-        sort_column = Transaction.side
-    else:
-        sort_column = Transaction.trade_date
-
-    if sort_order == "asc":
-        tx_query = tx_query.order_by(sort_column.asc())
-    else:
-        tx_query = tx_query.order_by(sort_column.desc())
-
-    if limit != "all":
-        tx_query = tx_query.limit(int(limit))
-
-    recent_transactions = tx_query.all()
     recent_prices = (
         db.query(MonthlyPrice)
         .order_by(MonthlyPrice.year_month.desc(), MonthlyPrice.ticker.asc())
@@ -199,7 +177,6 @@ def debug_db(
             "selected_limit": limit,
             "selected_sort_by": sort_by,
             "selected_sort_order": sort_order,
-            "recent_transactions": recent_transactions,
             "recent_prices": recent_prices,
             "recent_holdings": recent_holdings,
             "recent_dividends": recent_dividends,
