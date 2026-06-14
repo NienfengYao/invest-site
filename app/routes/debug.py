@@ -19,6 +19,7 @@ from app.services.dividend_data import fetch_and_store_dividends
 from app.services.rebuild_from_uploads import rebuild_from_uploads
 
 from fastapi.templating import Jinja2Templates
+from collections import defaultdict
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -136,6 +137,7 @@ def debug_db(
     # --- 偵測問題 ---
     unmapped = []
     missing_price_cases = []
+    missing_price_details = defaultdict(list)
 
     for tx in db.query(Transaction).filter(
         Transaction.account_id == selected_account_id
@@ -150,10 +152,15 @@ def debug_db(
 
         if (ticker, month) not in price_map:
             missing_price_cases.append((ticker, month))
+            missing_price_details[ticker].append(month)
 
     # 去重
     unmapped = list(set(unmapped))
     missing_price_cases = list(set(missing_price_cases))
+    missing_price_details = {
+        ticker: sorted(set(months))
+        for ticker, months in missing_price_details.items()
+    }
 
     # --- health summary ---
     checks = []
@@ -188,6 +195,7 @@ def debug_db(
             "checks": checks,
             "unmapped": unmapped,
             "missing_price_cases": missing_price_cases[:20],
+            "missing_price_details": missing_price_details,
         },
     )
 

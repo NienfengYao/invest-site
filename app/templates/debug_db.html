@@ -95,6 +95,24 @@
     {% endfor %}
     </table>
 
+    {% if missing_price_details %}
+    <h2>Missing Monthly Prices</h2>
+
+    <table>
+        <tr>
+            <th>Ticker</th>
+            <th>Missing Count</th>
+        </tr>
+
+        {% for ticker, months in missing_price_details.items() %}
+        <tr>
+            <td>{{ ticker }}</td>
+            <td>{{ months|length }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
 <div class="box">
     <h2>DB Summary</h2>
     <p>Accounts: {{ account_count }}</p>
