@@ -210,6 +210,37 @@ async def account_detail(request: Request, account_id: int):
             else None
         )
 
+        holding_years = None
+        annualized_return = None
+
+        first_trade_date = summary.get("first_trade_date")
+
+        if latest_month and first_trade_date:
+            try:
+                first_date = datetime.strptime(
+                    first_trade_date,
+                    "%Y/%m/%d",
+                )
+
+                today = datetime.today()
+                holding_days = (today - first_date).days
+                holding_years = holding_days / 365.25
+
+                if (
+                    holding_years > 0
+                    and latest_month.total_cost > 0
+                    and latest_month.market_value > 0
+                ):
+                    annualized_return = (
+                        (latest_month.market_value / latest_month.total_cost)
+                        ** (1 / holding_years)
+                        - 1
+                    )
+
+            except Exception:
+                holding_years = None
+                annualized_return = None
+
 
         return templates.TemplateResponse(
             "account_detail.html",
@@ -224,6 +255,8 @@ async def account_detail(request: Request, account_id: int):
                 "message": None,
                 "last_rebuilt_at": last_rebuilt_at,
                 "latest_month": latest_month,
+                "holding_years": holding_years,
+                "annualized_return": annualized_return,
             },
         )
     finally:

@@ -79,12 +79,91 @@
     <div class="box">
         <h2>帳戶摘要</h2>
         <table>
+
             <tr>
-                <th>總買入成本</th>
-                <td>{{ summary.total_buy_cost }}</td>
-                <th>總賣出金額</th>
-                <td>{{ summary.total_sell_amount }}</td>
+                <th>累計成本</th>
+                <td>
+                    {% if latest_month %}
+                        {{ "%.0f"|format(latest_month.total_cost) }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <th>目前市值</th>
+                <td>
+                    {% if latest_month %}
+                        {{ "%.0f"|format(latest_month.market_value) }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
             </tr>
+
+            <tr>
+                <th>未實現損益</th>
+                <td>
+                    {% if latest_month %}
+                        {{ "%.0f"|format(latest_month.unrealized_gain) }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <th>總報酬率</th>
+                <td>
+                    {% if latest_month %}
+                        <span class="{% if latest_month.return_rate > 0 %}positive{% elif latest_month.return_rate < 0 %}negative{% endif %}">
+                            {{ "%.2f"|format(latest_month.return_rate * 100) }}%
+                        </span>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <th>持有年數</th>
+                <td>
+                    {% if holding_years %}
+                        {{ "%.2f"|format(holding_years) }} 年
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <th>年化報酬率(估算)</th>
+                <td>
+                    {% if annualized_return is not none %}
+                        <span class="{% if annualized_return > 0 %}positive{% elif annualized_return < 0 %}negative{% endif %}">
+                            {{ "%.2f"|format(annualized_return * 100) }}%
+                        </span>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <th>累積股息</th>
+                <td>
+                    {% if latest_month %}
+                        {{ "%.0f"|format(latest_month.cumulative_dividend) }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <th>最後績效月份</th>
+                <td>
+                    {% if latest_month %}
+                        {{ latest_month.year_month }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+
             <tr>
                 <th>交易起始日</th>
                 <td>{{ summary.first_trade_date }}</td>
