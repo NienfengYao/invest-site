@@ -20,6 +20,10 @@ from app.services.account_summary import (
 from app.models.monthly_performance import MonthlyPerformance
 from app.services.cost_engine import rebuild_monthly_holdings
 from app.services.performance_engine import rebuild_monthly_performance
+from app.services.benchmark_engine import (
+    calculate_account_benchmark,
+    merge_positions_and_benchmark,
+)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -164,6 +168,12 @@ async def account_detail(request: Request, account_id: int):
 
         summary = calculate_account_summary(transactions)
         positions = calculate_positions(transactions)
+        benchmark = calculate_account_benchmark(account_id, db)
+
+        holdings_performance = merge_positions_and_benchmark(
+            positions=positions,
+            benchmark=benchmark,
+        )
 
         monthly_prices = (
             db.query(MonthlyPrice)
@@ -257,6 +267,8 @@ async def account_detail(request: Request, account_id: int):
                 "latest_month": latest_month,
                 "holding_years": holding_years,
                 "annualized_return": annualized_return,
+                "benchmark": benchmark,
+                "holdings_performance": holdings_performance,
             },
         )
     finally:

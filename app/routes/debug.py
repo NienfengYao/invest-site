@@ -17,6 +17,7 @@ from app.services.cost_engine import rebuild_monthly_holdings
 from app.services.performance_engine import rebuild_monthly_performance
 from app.services.dividend_data import fetch_and_store_dividends
 from app.services.rebuild_from_uploads import rebuild_from_uploads
+from app.services.system_debug import get_system_db_summary
 
 from fastapi.templating import Jinja2Templates
 from collections import defaultdict
@@ -260,4 +261,16 @@ def debug_rebuild_from_uploads(
     return rebuild_from_uploads(
         account_id=account_id,
         db=db,
+    )
+
+@router.get("/debug/system")
+def system_debug(request: Request, db: Session = Depends(get_db)):
+    tables = get_system_db_summary(db)
+
+    return templates.TemplateResponse(
+        "system_debug.html",
+        {
+            "request": request,
+            "tables": tables,
+        },
     )

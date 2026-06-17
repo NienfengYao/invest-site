@@ -214,6 +214,167 @@
     </div>
 
     <div class="box">
+        <h2> 持股與績效分析 </h2>
+
+        <p>
+            績效月份：
+            {{ benchmark.year_month if benchmark.year_month else "無資料" }}
+        </p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Ticker</th>
+                <th>股數</th>
+                <th>平均成本</th>
+                <th>月底價格</th>
+                <th>持有成本</th>
+                <th>月底市值</th>
+                <th>未實現損益</th>
+                <th>報酬率</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% if benchmark.rows %}
+                {% for row in benchmark.rows %}
+                <tr>
+                    <td>{{ row.ticker }}</td>
+                    <td>{{ "%.0f"|format(row.shares) }}</td>
+                    <td>{{ "%.2f"|format(row.avg_cost) }}</td>
+                    <td>
+                        {% if row.market_price %}
+                            {{ "%.2f"|format(row.market_price) }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ "%.0f"|format(row.total_cost) }}</td>
+                    <td>{{ "%.0f"|format(row.market_value) }}</td>
+                    <td>
+                        <span class="{% if row.unrealized_gain > 0 %}positive{% elif row.unrealized_gain < 0 %}negative{% endif %}">
+                            {{ "%.0f"|format(row.unrealized_gain) }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="{% if row.return_rate > 0 %}positive{% elif row.return_rate < 0 %}negative{% endif %}">
+                            {{ "%.2f"|format(row.return_rate * 100) }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+
+                <tr>
+                    <th colspan="4">Account Total</th>
+                    <th>{{ "%.0f"|format(benchmark.total.total_cost) }}</th>
+                    <th>{{ "%.0f"|format(benchmark.total.market_value) }}</th>
+                    <th>
+                        <span class="{% if benchmark.total.unrealized_gain > 0 %}positive{% elif benchmark.total.unrealized_gain < 0 %}negative{% endif %}">
+                            {{ "%.0f"|format(benchmark.total.unrealized_gain) }}
+                        </span>
+                    </th>
+                    <th>
+                        <span class="{% if benchmark.total.return_rate > 0 %}positive{% elif benchmark.total.return_rate < 0 %}negative{% endif %}">
+                            {{ "%.2f"|format(benchmark.total.return_rate * 100) }}%
+                        </span>
+                    </th>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8">目前沒有 Benchmark 資料，請先重建此帳戶績效資料。</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>持股與績效分析</h2>
+
+        <p>
+            績效月份：
+            {{ holdings_performance.year_month if holdings_performance.year_month else "無資料" }}
+        </p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>股名</th>
+                <th>股數</th>
+                <th>平均成本</th>
+                <th>最低價</th>
+                <th>最高價</th>
+                <th>月底價格</th>
+                <th>市值</th>
+                <th>損益</th>
+                <th>報酬率</th>
+                <th>市值占比</th>
+                <th>投資起始</th>
+                <th>投資最後</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% if holdings_performance.rows %}
+                {% for row in holdings_performance.rows %}
+                <tr>
+                    <td>{{ row.name or row.ticker }}</td>
+                    <td>{{ "%.0f"|format(row.shares or 0) }}</td>
+                    <td>{{ "%.2f"|format(row.avg_cost or 0) }}</td>
+                    <td>{{ "%.2f"|format(row.low_price or 0) }}</td>
+                    <td>{{ "%.2f"|format(row.high_price or 0) }}</td>
+                    <td>{{ "%.2f"|format(row.market_price or 0) }}</td>
+                    <td>{{ "%.0f"|format(row.market_value or 0) }}</td>
+                    <td>
+                        {% set gain = row.unrealized_gain or 0 %}
+                        <span class="{% if gain > 0 %}positive{% elif gain < 0 %}negative{% endif %}">
+                            {{ "%.0f"|format(gain) }}
+                        </span>
+                    </td>
+                    <td>
+                        {% set rate = row.return_rate or 0 %}
+                        <span class="{% if rate > 0 %}positive{% elif rate < 0 %}negative{% endif %}">
+                            {{ "%.2f"|format(rate * 100) }}%
+                        </span>
+                    </td>
+                    <td>{{ "%.1f"|format((row.portfolio_pct or 0) * 100) }}%</td>
+                    <td>{{ row.start_date or "-" }}</td>
+                    <td>{{ row.end_date or "-" }}</td>
+                </tr>
+                {% endfor %}
+
+                <tr>
+                    <th>合計</th>
+                    <th colspan="5"></th>
+                    <th>{{ "%.0f"|format(holdings_performance.total.market_value or 0) }}</th>
+
+                    <th>
+                        {% set total_gain = holdings_performance.total.unrealized_gain or 0 %}
+                        <span class="{% if total_gain > 0 %}positive{% elif total_gain < 0 %}negative{% endif %}">
+                            {{ "%.0f"|format(total_gain) }}
+                        </span>
+                    </th>
+
+                    <th>
+                        {% set total_rate = holdings_performance.total.return_rate or 0 %}
+                        <span class="{% if total_rate > 0 %}positive{% elif total_rate < 0 %}negative{% endif %}">
+                            {{ "%.2f"|format(total_rate * 100) }}%
+                        </span>
+                    </th>
+
+                    <th>100.0%</th>
+                    <th colspan="2"></th>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="12">目前沒有持股與績效資料。</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
     <h2>月績效摘要</h2>
 
     <table>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>System Debug</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 24px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        .box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .muted {
+            color: #666;
+            font-size: 13px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>System Debug</h1>
+
+<p class="muted">
+    顯示目前資料庫中的 table、schema 與前三筆資料。
+</p>
+
+<h2>Database Tables</h2>
+
+<table>
+    <tr>
+        <th>Table</th>
+        <th>Rows</th>
+        <th>Columns</th>
+    </tr>
+
+    {% for table in tables %}
+    <tr>
+        <td>{{ table.name }}</td>
+        <td>{{ table.row_count }}</td>
+        <td>{{ table.columns | length }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% for table in tables %}
+<div class="box">
+    <h2>{{ table.name }}</h2>
+
+    <p>
+        Rows: {{ table.row_count }},
+        Columns: {{ table.columns | length }}
+    </p>
+
+    <h3>Schema</h3>
+
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Nullable</th>
+            <th>PK</th>
+        </tr>
+
+        {% for col in table.columns %}
+        <tr>
+            <td>{{ col.name }}</td>
+            <td>{{ col.type }}</td>
+            <td>{{ col.nullable }}</td>
+            <td>{{ col.primary_key }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endfor %}
+
+</body>
+</html>
