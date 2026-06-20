@@ -21,6 +21,9 @@ from app.services.system_debug import get_system_db_summary
 
 from fastapi.templating import Jinja2Templates
 from collections import defaultdict
+from fastapi import Form
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -265,6 +268,7 @@ def debug_rebuild_from_uploads(
 
 @router.get("/debug/system")
 def system_debug(request: Request, db: Session = Depends(get_db)):
+    print("system_debug_get")
     tables = get_system_db_summary(db)
 
     return templates.TemplateResponse(
@@ -272,5 +276,71 @@ def system_debug(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "tables": tables,
+            "sql": "",
+            "sql_result": None,
         },
     )
+
+@router.post("/debug/system")
+def system_debug_query(
+    request: Request,
+    sql: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    print("system_debug_post")
+    tables = get_system_db_summary(db)
+    print("sql:", sql)
+    sql_result = run_readonly_sql(db, sql)
+
+    return templates.TemplateResponse(
+        "system_debug.html",
+        {
+            "request": request,
+            "tables": tables,
+            "sql": sql,
+            "sql_result": sql_result,
+        },
+    )
+
+def run_readonly_sql(db, sql: str):
+    sql_clean = sql.strip()
+
+    if not sql_clean:
+        return {
+            "error": "SQL is empty.",
+            "columns": [],
+            "rows": [],
+        }
+
+    first_word = sql_clean.split()[0].lower()
+
+    if first_word not in ("select", "with", "pragma"):
+        return {
+            "error": "Only SELECT, WITH, and PRAGMA queries are allowed.",
+            "columns": [],
+            "rows": [],
+        }
+
+    try:
+        result = db.execute(text(sql_clean))
+        rows = result.mappings().all()
+
+        return {
+            "error": None,
+            "columns": list(result.keys()),
+            "rows": rows,
+        }
+
+    except SQLAlchemyError as e:
+        return {
+            "error": str(e),
+            "columns": [],
+            "rows": [],
+        }
+
+    except Exception as e:
+        return {
+            "error": f"Unexpected error: {e}",
+            "columns": [],
+            "rows": [],
+        }

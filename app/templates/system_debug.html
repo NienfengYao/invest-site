@@ -48,9 +48,11 @@
 <body>
 
 <h1>System Debug</h1>
-
+<div class="actions">
+    <a href="/">← 回首頁</a>
+</div>
 <p class="muted">
-    顯示目前資料庫中的 table、schema 與前三筆資料。
+    顯示目前資料庫中的 table、schema。
 </p>
 
 <h2>Database Tables</h2>
@@ -101,6 +103,51 @@
     </table>
 </div>
 {% endfor %}
+
+<div class="box">
+    <h2>SQL Query</h2>
+
+    <form method="post" action="/debug/system">
+        <textarea name="sql" rows="5" style="width: 100%; font-family: monospace;" placeholder="SELECT * FROM transactions LIMIT 10">{{ sql or "" }}</textarea>
+
+        <br><br>
+
+        <button type="submit">Run SQL</button>
+    </form>
+    <p class="muted">
+        Only SELECT, WITH, and PRAGMA queries are allowed.
+    </p>
+
+    {% if sql_result %}
+        {% if sql_result.error %}
+            <p style="color: red; font-weight: bold;">
+                {{ sql_result.error }}
+            </p>
+        {% else %}
+            <h3>Result</h3>
+
+            <table>
+                <tr>
+                    {% for col in sql_result.columns %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+
+                {% for row in sql_result.rows %}
+                <tr>
+                    {% for col in sql_result.columns %}
+                    <td>{{ row[col] }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+
+            <p class="muted">
+                {{ sql_result.rows | length }} rows
+            </p>
+        {% endif %}
+    {% endif %}
+</div>
 
 </body>
 </html>
