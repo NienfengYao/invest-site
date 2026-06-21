@@ -84,7 +84,7 @@
                 <th>累計成本</th>
                 <td>
                     {% if latest_month %}
-                        {{ "%.0f"|format(latest_month.total_cost) }}
+                        {{ "{:,.0f}".format(latest_month.total_cost) }}
                     {% else %}
                         -
                     {% endif %}
@@ -93,7 +93,7 @@
                 <th>目前市值</th>
                 <td>
                     {% if latest_month %}
-                        {{ "%.0f"|format(latest_month.market_value) }}
+                        {{ "{:,.0f}".format(latest_month.market_value) }}
                     {% else %}
                         -
                     {% endif %}
@@ -104,7 +104,7 @@
                 <th>未實現損益</th>
                 <td>
                     {% if latest_month %}
-                        {{ "%.0f"|format(latest_month.unrealized_gain) }}
+                        {{ "{:,.0f}".format(latest_month.unrealized_gain) }}
                     {% else %}
                         -
                     {% endif %}
@@ -148,7 +148,7 @@
                 <th>累積股息</th>
                 <td>
                     {% if latest_month %}
-                        {{ "%.0f"|format(latest_month.cumulative_dividend) }}
+                        {{ "{:,.0f}".format(latest_month.cumulative_dividend) }}
                     {% else %}
                         -
                     {% endif %}
@@ -195,6 +195,7 @@
                 <th>市值占比</th>
                 <th>最低價</th>
                 <th>最高價</th>
+                <th>持有月數</th>
                 <th>投資起始</th>
                 <th>最後買進</th>
             </tr>
@@ -225,6 +226,7 @@
                     <td>{{ "%.1f"|format((row.portfolio_pct or 0) * 100) }}%</td>
                     <td>{{ "%.2f"|format(row.low_price or 0) }}</td>
                     <td>{{ "%.2f"|format(row.high_price or 0) }}</td>
+                    <td>{{ row.holding_months or 0 }}</td>
                     <td>{{ row.start_date or "-" }}</td>
                     <td>{{ row.end_date or "-" }}</td>
                 </tr>
@@ -255,7 +257,7 @@
                     </th>
 
                     <th>100.0%</th>
-                    <th colspan="4"></th>
+                    <th colspan="5"></th>
                 </tr>
             {% else %}
                 <tr>

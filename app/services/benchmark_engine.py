@@ -1,6 +1,7 @@
 from typing import Any
 from sqlalchemy.orm import Session
 from app.models.monthly_holding import MonthlyHolding
+from datetime import datetime
 
 
 def calculate_account_benchmark(account_id: int, db: Session) -> dict[str, Any]:
@@ -98,19 +99,38 @@ def merge_positions_and_benchmark(positions, benchmark):
         if total_market_value > 0:
             portfolio_pct = market_value / total_market_value
 
+        holding_months = 0
+        try:
+            start_date = position.get("start_date")
+            year_month = benchmark.get("year_month")
+
+            if start_date and year_month:
+                start_dt = datetime.strptime(start_date, "%Y/%m/%d")
+                end_dt = datetime.strptime(year_month + "-01", "%Y-%m-%d")
+
+                holding_months = (
+                    (end_dt.year - start_dt.year) * 12
+                    + (end_dt.month - start_dt.month)
+                )
+
+                if holding_months < 0:
+                    holding_months = 0
+
+        except Exception:
+            holding_months = 0
+
         rows.append({
             "ticker": ticker,
             "stock_name": position.get("stock_name"),
-
             "shares": float(position.get("current_qty") or 0),
             "avg_cost": float(position.get("avg_price") or 0),
             "low_price": float(position.get("min_price") or 0),
             "high_price": float(position.get("max_price") or 0),
             "buy_amount": float(position.get("buy_cost") or 0),
             "sell_amount": float(position.get("sell_amount") or 0),
+            "holding_months": holding_months,
             "start_date": position.get("start_date"),
             "end_date": position.get("end_date"),
-
             "market_price": float(b.get("market_price") or 0),
             "total_cost": float(b.get("total_cost") or 0),
             "market_value": float(b.get("market_value") or 0),
