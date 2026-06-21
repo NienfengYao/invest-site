@@ -6,9 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
 from app.models.dividend import Dividend
-
-from app.core.ticker import normalize_ticker
-from app.services.account_summary import resolve_ticker
+from app.core.ticker import normalize_ticker, resolve_ticker
 
 
 def _get_all_tickers(db: Session):

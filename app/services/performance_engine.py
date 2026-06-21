@@ -8,8 +8,7 @@ from app.models.transaction import Transaction
 from app.models.monthly_holding import MonthlyHolding
 from app.models.monthly_performance import MonthlyPerformance
 from app.models.dividend import Dividend
-from app.services.account_summary import resolve_ticker
-from app.core.ticker import normalize_ticker
+from app.core.ticker import normalize_ticker, resolve_ticker
 
 
 def _year_month(date_str: str) -> str:

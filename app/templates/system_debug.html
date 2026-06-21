@@ -149,5 +149,23 @@
     {% endif %}
 </div>
 
+
+<div class="box">
+    <h3>SQL Examples</h3>
+
+    <details>
+        <summary>Show Examples</summary>
+        <pre>
+SELECT * FROM transactions LIMIT 10;
+        </pre>
+        <pre>
+PRAGMA table_info(transactions);
+        </pre>
+        <pre>
+SELECT DISTINCT ticker FROM transactions ORDER BY ticker;
+        </pre>
+    </details>
+</div>
+
 </body>
 </html>

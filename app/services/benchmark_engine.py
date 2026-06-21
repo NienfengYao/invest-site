@@ -99,26 +99,23 @@ def merge_positions_and_benchmark(positions, benchmark):
             portfolio_pct = market_value / total_market_value
 
         rows.append({
-            # from position
             "ticker": ticker,
-            "name": position.get("name"),
-            "shares": position.get("shares"),
-            "avg_cost": position.get("avg_cost"),
-            "low_price": position.get("low_price"),
-            "high_price": position.get("high_price"),
-            "buy_amount": position.get("buy_amount"),
-            "sell_amount": position.get("sell_amount"),
+            "stock_name": position.get("stock_name"),
+
+            "shares": float(position.get("current_qty") or 0),
+            "avg_cost": float(position.get("avg_price") or 0),
+            "low_price": float(position.get("min_price") or 0),
+            "high_price": float(position.get("max_price") or 0),
+            "buy_amount": float(position.get("buy_cost") or 0),
+            "sell_amount": float(position.get("sell_amount") or 0),
             "start_date": position.get("start_date"),
             "end_date": position.get("end_date"),
 
-            # from benchmark
-            "market_price": b.get("market_price"),
-            "total_cost": b.get("total_cost"),
-            "market_value": b.get("market_value"),
-            "unrealized_gain": b.get("unrealized_gain"),
-            "return_rate": b.get("return_rate"),
-
-            # calculated
+            "market_price": float(b.get("market_price") or 0),
+            "total_cost": float(b.get("total_cost") or 0),
+            "market_value": float(b.get("market_value") or 0),
+            "unrealized_gain": float(b.get("unrealized_gain") or 0),
+            "return_rate": float(b.get("return_rate") or 0),
             "portfolio_pct": portfolio_pct,
         })
 

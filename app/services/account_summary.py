@@ -4,22 +4,7 @@ from typing import Any, Optional
 
 from app.models.monthly_price import MonthlyPrice
 from app.models.transaction import Transaction
-
-
-STOCK_NAME_TO_TICKER = {
-    "富邦台50": "006208",
-    "國泰永續高股息": "00878",
-    "元大台灣50": "0050",
-    "元大高股息": "0056",
-    "群益台灣精選高息": "00919",
-    "復華台灣科技優息": "00929",
-    "國泰10Y+金融債": "00933B",
-    "元大美債20年": "00679B",
-    "元大美債20正2": "00680L",
-    "主動群益台灣強棒": "00982A",
-    "國泰台灣領袖50": "00922",
-    "富邦特選高股息30": "00900",
-}
+from app.core.ticker import resolve_ticker, normalize_ticker
 
 
 def parse_trade_date(date_str: str) -> datetime:
@@ -37,21 +22,6 @@ def parse_trade_date(date_str: str) -> datetime:
             continue
 
     raise ValueError(f"Unsupported trade_date format: {date_str}")
-
-
-def resolve_ticker(stock_name: str) -> Optional[str]:
-    name = (stock_name or "").strip()
-    if not name:
-        return None
-
-    upper_name = name.upper()
-    if upper_name.isdigit():
-        return upper_name
-
-    if upper_name.endswith(".TW") or upper_name.endswith(".TWO"):
-        return upper_name
-
-    return STOCK_NAME_TO_TICKER.get(name)
 
 
 def calculate_account_summary(transactions: list[Transaction]) -> dict[str, Any]:
@@ -119,7 +89,11 @@ def calculate_positions(transactions: list[Transaction]) -> list[dict[str, Any]]
         start_date = min(dates) if dates else ""
         end_date = max(dates) if dates else ""
 
+        ticker = resolve_ticker(stock_name)
+        normalized_ticker = normalize_ticker(ticker) if ticker else None
+
         positions.append({
+            "ticker": normalized_ticker,
             "stock_name": stock_name,
             "current_qty": current_qty,
             "avg_price": round(avg_price, 4),
