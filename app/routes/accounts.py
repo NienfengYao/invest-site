@@ -158,121 +158,125 @@ async def create_account(request: Request, account_name: str = Form(...)):
 async def account_detail(request: Request, account_id: int):
     db = SessionLocal()
     try:
-        account = db.query(Account).filter(Account.id == account_id).first()
-        if not account:
+        context = build_account_detail_context(
+            request=request,
+            db=db,
+            account_id=account_id,
+            message=None,
+        )
+
+        if context is None:
             return HTMLResponse("Account not found", status_code=404)
-
-        query = db.query(Transaction).filter(Transaction.account_id == account_id)
-
-        transactions = query.order_by(Transaction.trade_date.desc(), Transaction.id.desc()).all()
-
-        summary = calculate_account_summary(transactions)
-        positions = calculate_positions(transactions)
-        benchmark = calculate_account_benchmark(account_id, db)
-
-        holdings_performance = merge_positions_and_benchmark(
-            positions=positions,
-            benchmark=benchmark,
-        )
-
-        monthly_prices = (
-            db.query(MonthlyPrice)
-            .order_by(MonthlyPrice.year_month.asc(), MonthlyPrice.ticker.asc())
-            .all()
-        )
-
-        performance_rows = (
-            db.query(MonthlyPerformance)
-            .filter(
-                MonthlyPerformance.account_id == account_id
-            )
-            .order_by(
-                MonthlyPerformance.year_month.desc()
-            )
-            .all()
-        )
-
-        latest_month = (
-            db.query(MonthlyPerformance)
-            .filter(
-                MonthlyPerformance.account_id == account_id
-            )
-            .order_by(
-                MonthlyPerformance.year_month.desc()
-            )
-            .first()
-        )
-
-        latest_performance = (
-            db.query(MonthlyPerformance)
-            .filter(
-                MonthlyPerformance.account_id == account_id
-            )
-            .order_by(
-                MonthlyPerformance.created_at.desc()
-            )
-            .first()
-        )
-
-        last_rebuilt_at = (
-            latest_performance.created_at
-            if latest_performance
-            else None
-        )
-
-        holding_years = None
-        annualized_return = None
-
-        first_trade_date = summary.get("first_trade_date")
-
-        if latest_month and first_trade_date:
-            try:
-                first_date = datetime.strptime(
-                    first_trade_date,
-                    "%Y/%m/%d",
-                )
-
-                today = datetime.today()
-                holding_days = (today - first_date).days
-                holding_years = holding_days / 365.25
-
-                if (
-                    holding_years > 0
-                    and latest_month.total_cost > 0
-                    and latest_month.market_value > 0
-                ):
-                    annualized_return = (
-                        (latest_month.market_value / latest_month.total_cost)
-                        ** (1 / holding_years)
-                        - 1
-                    )
-
-            except Exception:
-                holding_years = None
-                annualized_return = None
-
 
         return templates.TemplateResponse(
             "account_detail.html",
-            {
-                "request": request,
-                "title": f"帳戶管理 - {account.name}",
-                "account": account,
-                "transactions": transactions,
-                "summary": summary,
-                "positions": positions,
-                "performance_rows": performance_rows,
-                "message": None,
-                "last_rebuilt_at": last_rebuilt_at,
-                "latest_month": latest_month,
-                "holding_years": holding_years,
-                "annualized_return": annualized_return,
-                "benchmark": benchmark,
-                "holdings_performance": holdings_performance,
-            },
+            context,
         )
     finally:
         db.close()
+
+
+def build_account_detail_context(
+    request: Request,
+    db,
+    account_id: int,
+    message: str | None = None,
+):
+    account = db.query(Account).filter(Account.id == account_id).first()
+    if not account:
+        return None
+
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.account_id == account_id)
+        .order_by(Transaction.trade_date.desc(), Transaction.id.desc())
+        .all()
+    )
+
+    summary = calculate_account_summary(transactions)
+    positions = calculate_positions(transactions)
+
+    benchmark = calculate_account_benchmark(account_id, db)
+
+    holdings_performance = merge_positions_and_benchmark(
+        positions=positions,
+        benchmark=benchmark,
+    )
+
+    performance_rows = (
+        db.query(MonthlyPerformance)
+        .filter(MonthlyPerformance.account_id == account_id)
+        .order_by(MonthlyPerformance.year_month.desc())
+        .all()
+    )
+
+    latest_month = (
+        db.query(MonthlyPerformance)
+        .filter(MonthlyPerformance.account_id == account_id)
+        .order_by(MonthlyPerformance.year_month.desc())
+        .first()
+    )
+
+    latest_performance = (
+        db.query(MonthlyPerformance)
+        .filter(MonthlyPerformance.account_id == account_id)
+        .order_by(MonthlyPerformance.created_at.desc())
+        .first()
+    )
+
+    last_rebuilt_at = (
+        latest_performance.created_at
+        if latest_performance
+        else None
+    )
+
+    holding_years = None
+    annualized_return = None
+
+    first_trade_date = summary.get("first_trade_date")
+
+    if latest_month and first_trade_date:
+        try:
+            first_date = datetime.strptime(
+                first_trade_date,
+                "%Y/%m/%d",
+            )
+
+            today = datetime.today()
+            holding_days = (today - first_date).days
+            holding_years = holding_days / 365.25
+
+            if (
+                holding_years > 0
+                and latest_month.total_cost > 0
+                and latest_month.market_value > 0
+            ):
+                annualized_return = (
+                    (latest_month.market_value / latest_month.total_cost)
+                    ** (1 / holding_years)
+                    - 1
+                )
+
+        except Exception:
+            holding_years = None
+            annualized_return = None
+
+    return {
+        "request": request,
+        "title": f"帳戶管理 - {account.name}",
+        "account": account,
+        "transactions": transactions,
+        "summary": summary,
+        "positions": positions,
+        "performance_rows": performance_rows,
+        "message": message,
+        "last_rebuilt_at": last_rebuilt_at,
+        "latest_month": latest_month,
+        "holding_years": holding_years,
+        "annualized_return": annualized_return,
+        "benchmark": benchmark,
+        "holdings_performance": holdings_performance,
+    }
 
 
 @router.post("/accounts/{account_id}/upload", response_class=HTMLResponse)
@@ -342,64 +346,40 @@ async def upload_transactions(
 
         db.commit()
 
-        query = db.query(Transaction).filter(Transaction.account_id == account_id)
-        transactions = query.order_by(Transaction.trade_date.desc(), Transaction.id.desc()).all()
-
-        summary = calculate_account_summary(transactions)
-        positions = calculate_positions(transactions)
-
-        monthly_prices = (
-            db.query(MonthlyPrice)
-            .order_by(MonthlyPrice.year_month.asc(), MonthlyPrice.ticker.asc())
-            .all()
+        context = build_account_detail_context(
+            request=request,
+            db=db,
+            account_id=account_id,
+            message=f"匯入完成：新增 {inserted_count} 筆，略過 {skipped_count} 筆重複資料",
         )
 
-        performance_rows = (
-            db.query(MonthlyPerformance)
-            .filter(MonthlyPerformance.account_id == account_id)
-            .order_by(MonthlyPerformance.year_month.desc())
-            .all()
-        )
+        if context is None:
+            return HTMLResponse("Account not found", status_code=404)
 
         return templates.TemplateResponse(
             "account_detail.html",
-            {
-                "request": request,
-                "title": f"帳戶管理 - {account.name}",
-                "account": account,
-                "transactions": transactions,
-                "performance_rows": performance_rows,
-                "summary": summary,
-                "positions": positions,
-                "message": f"匯入完成：新增 {inserted_count} 筆，略過 {skipped_count} 筆重複資料",
-            },
+            context,
         )
+
     except Exception as exc:
         db.rollback()
-        account = db.query(Account).filter(Account.id == account_id).first()
-        transactions = (
-            db.query(Transaction)
-            .filter(Transaction.account_id == account_id)
-            .order_by(Transaction.trade_date.desc(), Transaction.id.desc())
-            .all()
+
+        context = build_account_detail_context(
+            request=request,
+            db=db,
+            account_id=account_id,
+            message=f"匯入失敗：{exc}",
         )
-        summary = calculate_account_summary(transactions)
-        positions = calculate_positions(transactions)
+
+        if context is None:
+            return HTMLResponse("Account not found", status_code=404)
 
         return templates.TemplateResponse(
             "account_detail.html",
-            {
-                "request": request,
-                "title": f"帳戶管理 - {account.name if account else account_id}",
-                "account": account,
-                "transactions": transactions,
-                "performance_rows": performance_rows,
-                "summary": summary,
-                "positions": positions,
-                "message": f"匯入失敗：{exc}",
-            },
+            context,
             status_code=400,
         )
+
     finally:
         db.close()
 
