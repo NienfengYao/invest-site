@@ -279,6 +279,23 @@ def build_account_detail_context(
     }
 
 
+def rebuild_account_data(db, account_id: int):
+    holdings_result = rebuild_monthly_holdings(
+        account_id=account_id,
+        db=db,
+    )
+
+    performance_result = rebuild_monthly_performance(
+        account_id=account_id,
+        db=db,
+    )
+
+    return {
+        "holdings": holdings_result,
+        "performance": performance_result,
+
+
+
 @router.post("/accounts/{account_id}/upload", response_class=HTMLResponse)
 async def upload_transactions(
     request: Request,
@@ -346,11 +363,31 @@ async def upload_transactions(
 
         db.commit()
 
+        try:
+            rebuild_result = rebuild_account_data(db, account_id)
+            db.commit()
+
+            message = (
+                f"匯入完成：新增 {inserted_count} 筆，"
+                f"略過 {skipped_count} 筆重複資料，"
+                f"並已自動重建績效資料。"
+            )
+
+        except Exception as rebuild_exc:
+            db.rollback()
+
+            message = (
+                f"匯入完成：新增 {inserted_count} 筆，"
+                f"略過 {skipped_count} 筆重複資料，"
+                f"但自動重建績效資料失敗：{rebuild_exc}。"
+                f"請手動執行重建。"
+            )
+
         context = build_account_detail_context(
             request=request,
             db=db,
             account_id=account_id,
-            message=f"匯入完成：新增 {inserted_count} 筆，略過 {skipped_count} 筆重複資料",
+            message=message,
         )
 
         if context is None:
@@ -395,15 +432,10 @@ async def rebuild_account_performance(
         if not account:
             return HTMLResponse("Account not found", status_code=404)
 
-        holdings_result = rebuild_monthly_holdings(
-            account_id=account_id,
-            db=db,
-        )
 
-        performance_result = rebuild_monthly_performance(
-            account_id=account_id,
-            db=db,
-        )
+        rebuild_result = rebuild_account_data(db, account_id)
+        holdings_result = rebuild_result["holdings"]
+        performance_result = rebuild_result["performance"]
 
         result = {
             "帳戶": account.name,
